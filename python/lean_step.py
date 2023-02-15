@@ -188,6 +188,25 @@ class TheoremNamePredictionDatasetCreator(DatasetCreator):
             result_msg = json.dumps(result)
             self.fp.write(result_msg + "\n")
 
+class TheoremPredictionDatasetCreator(DatasetCreator):
+    """
+    Creates theorem name prediction datapoints.
+    The prompt is the type of the theorem. Training on this is intended to get the model to 
+    """
+
+    def __init__(self, fp):
+        super().__init__(fp)
+        self.seen = set()
+
+    def process_dp(self, dp):
+        tp, _ = get_theorem_name_prediction_datapoint(dp) # dump just the type of the theorem
+        if tp in self.seen:
+            pass
+        else:
+            self.seen.add(tp)
+            result = {"type": tp} 
+            result_msg = json.dumps(result)
+            self.fp.write(result_msg + "\n")
 
 class NextLemmaPredictionDatasetCreator(DatasetCreator):
     """
@@ -368,11 +387,24 @@ def create_datasets(data_dir: str, dest_dir: str):
         ProofTermPredictionDatasetCreator(
             open(os.path.join(dest_dir, "proof_term_prediction.json"), "w")
         ),
-        SkipProofDatasetCreator(open(os.path.join(dest_dir, "skip_proof.json"), "w")),
-        TypePredictionDatasetCreator(open(os.path.join(dest_dir, "type_prediction.json"), "w")),
-        TSElabDatasetCreator(open(os.path.join(dest_dir, "ts_elab.json"), "w")),
-        ProofTermElabDatasetCreator(open(os.path.join(dest_dir, "proof_term_elab.json"), "w")),
-        ResultElabDatasetCreator(open(os.path.join(dest_dir, "result_elab.json"), "w")),
+        TheoremPredictionDatasetCreator(
+            open(os.path.join(dest_dir, "theorem_prediction.json"), "w")
+        ),
+        SkipProofDatasetCreator(
+            open(os.path.join(dest_dir, "skip_proof.json"), "w")
+        ),
+        TypePredictionDatasetCreator(
+            open(os.path.join(dest_dir, "type_prediction.json"), "w")
+        ),
+        TSElabDatasetCreator(
+            open(os.path.join(dest_dir, "ts_elab.json"), "w")
+        ),
+        ProofTermElabDatasetCreator(
+            open(os.path.join(dest_dir, "proof_term_elab.json"), "w")
+        ),
+        ResultElabDatasetCreator(
+            open(os.path.join(dest_dir, "result_elab.json"), "w")
+        ),
     ]
 
     if not os.path.exists(dest_dir):
